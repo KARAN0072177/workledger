@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../node_modules/@prisma/client/mongo"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGODB_URL")
+}
+
+model Activity {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  workspaceId String
+  actorId     String
+  type        String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([workspaceId, createdAt])
+  @@map("activities")
+}
+
+model Post {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  workspaceId String
+  authorId    String
+  content     String
+  createdAt   DateTime @default(now())
+  deletedAt   DateTime?
+
+  @@index([workspaceId, createdAt])
+  @@map("posts")
+}
+
+model Comment {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  postId    String
+  authorId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([postId])
+  @@map("comments")
+}
