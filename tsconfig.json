@@ -18,10 +18,21 @@
         "name": "next"
       }
     ],
+
+    "baseUrl": ".",                      // 👈 ADD THIS
+
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+
+      "@prisma/client/mongo": [           // 👈 ADD THIS
+        "./node_modules/@prisma/client/mongo"
+      ],
+      "@prisma/client/postgres": [        // 👈 ADD THIS
+        "./node_modules/@prisma/client/postgres"
+      ]
     }
   },
+
   "include": [
     "next-env.d.ts",
     "**/*.ts",
