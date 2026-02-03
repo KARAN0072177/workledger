@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../../node_modules/@prisma/client/postgres"
 }
 
 datasource db {
@@ -16,26 +15,26 @@ enum WorkspaceRole {
 }
 
 model User {
-  id                 String   @id @default(uuid())
-  email              String   @unique
-  name               String?
-  avatar             String?
-  username            String?  @unique
-  provider           String
-  providerAccountId  String
-  createdAt          DateTime @default(now())
-  deletedAt          DateTime?
+  id                String   @id @default(uuid())
+  email             String   @unique
+  name              String?
+  avatar            String?
+  username          String?  @unique
+  provider          String
+  providerAccountId String
+  createdAt         DateTime @default(now())
+  deletedAt         DateTime?
 
   memberships WorkspaceMember[]
 
-  @@unique([provider, providerAccountId])
+  @@unique([provider, providerAccountId]) // 🔑 ADD THIS
   @@map("users")
 }
 
 model Workspace {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   name      String
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   deletedAt DateTime?
 
   members WorkspaceMember[]
@@ -44,11 +43,11 @@ model Workspace {
 }
 
 model WorkspaceMember {
-  id          String         @id @default(uuid())
+  id          String        @id @default(uuid())
   userId      String
   workspaceId String
   role        WorkspaceRole
-  createdAt   DateTime       @default(now())
+  createdAt   DateTime      @default(now())
   deletedAt   DateTime?
 
   user      User      @relation(fields: [userId], references: [id])

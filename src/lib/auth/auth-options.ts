@@ -1,10 +1,11 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import { postgres } from "@/lib/db";
+import { postgres } from "@/lib/db/postgres";
 
 export const authOptions: NextAuthOptions = {
+  // 🔑 FIX: use JWT sessions (no adapter required)
   session: {
-    strategy: "database",
+    strategy: "jwt",
   },
 
   providers: [
@@ -15,14 +16,14 @@ export const authOptions: NextAuthOptions = {
   ],
 
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account }) {
       if (account?.provider !== "google") return false;
 
       const existingUser = await postgres.user.findUnique({
         where: {
           provider_providerAccountId: {
             provider: "google",
-            providerAccountId: account.providerAccountId,
+            providerAccountId: account.providerAccountId!,
           },
         },
       });
@@ -34,7 +35,7 @@ export const authOptions: NextAuthOptions = {
             name: user.name,
             avatar: user.image,
             provider: "google",
-            providerAccountId: account.providerAccountId,
+            providerAccountId: account.providerAccountId!,
           },
         });
       }
@@ -42,9 +43,18 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
 
-    async session({ session, user }) {
+    async jwt({ token, account }) {
+      // First login only
+      if (account) {
+        token.provider = account.provider;
+        token.providerAccountId = account.providerAccountId;
+      }
+      return token;
+    },
+
+    async session({ session, token }) {
       if (session.user) {
-        session.user.id = user.id;
+        session.user.email = token.email as string;
       }
       return session;
     },
