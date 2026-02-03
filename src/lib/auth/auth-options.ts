@@ -1,5 +1,5 @@
 import { NextAuthOptions } from "next-auth";
-import Credentials from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 import { postgres } from "@/lib/db";
 
 export const authOptions: NextAuthOptions = {
@@ -8,30 +8,40 @@ export const authOptions: NextAuthOptions = {
   },
 
   providers: [
-    Credentials({
-      name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email) return null;
-
-        const user = await postgres.user.findUnique({
-          where: { email: credentials.email },
-        });
-
-        if (!user || user.deletedAt) return null;
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-        };
-      },
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
 
   callbacks: {
+    async signIn({ user, account, profile }) {
+      if (account?.provider !== "google") return false;
+
+      const existingUser = await postgres.user.findUnique({
+        where: {
+          provider_providerAccountId: {
+            provider: "google",
+            providerAccountId: account.providerAccountId,
+          },
+        },
+      });
+
+      if (!existingUser) {
+        await postgres.user.create({
+          data: {
+            email: user.email!,
+            name: user.name,
+            avatar: user.image,
+            provider: "google",
+            providerAccountId: account.providerAccountId,
+          },
+        });
+      }
+
+      return true;
+    },
+
     async session({ session, user }) {
       if (session.user) {
         session.user.id = user.id;

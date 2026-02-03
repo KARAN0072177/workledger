@@ -16,14 +16,19 @@ enum WorkspaceRole {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  deletedAt DateTime?
+  id                 String   @id @default(uuid())
+  email              String   @unique
+  name               String?
+  avatar             String?
+  username            String?  @unique
+  provider           String
+  providerAccountId  String
+  createdAt          DateTime @default(now())
+  deletedAt          DateTime?
 
   memberships WorkspaceMember[]
 
+  @@unique([provider, providerAccountId])
   @@map("users")
 }
 

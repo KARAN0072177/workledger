@@ -1,13 +1,16 @@
 import { PrismaClient } from "@prisma/client/postgres";
 
-const globalForPostgres = globalThis as unknown as {
-  postgres?: PrismaClient;
-};
+declare global {
+  // eslint-disable-next-line no-var
+  var __postgresPrisma: PrismaClient | undefined;
+}
 
 export const postgres =
-  globalForPostgres.postgres ??
-  new PrismaClient();
+  global.__postgresPrisma ??
+  new PrismaClient({
+    log: ["error"],
+  });
 
 if (process.env.NODE_ENV !== "production") {
-  globalForPostgres.postgres = postgres;
+  global.__postgresPrisma = postgres;
 }
